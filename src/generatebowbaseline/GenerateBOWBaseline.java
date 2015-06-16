@@ -25,10 +25,18 @@ import org.w3c.dom.NodeList;
  * @author kicorangel
  */
 public class GenerateBOWBaseline {
-    private static String PATH = "/data/pan13/pan13-author-profiling-training-corpus-2013-01-09/en/";
-    private static String TRUTH = "/data/pan13/pan13-author-profiling-training-corpus-2013-01-09/truth-en.txt";
-    private static String BOW = "/data/pan13/bow-en.txt";
-    private static String OUTPUT = "/data/pan13/pan-ap-13-training-en-{task}.arff";
+    
+    // Directorio donde se encuentran todos los ficheros XML
+    private static String PATH = "/home/luis/Text_mining/pan13-author-profiling-test-corpus2-2013-04-29/es-prueba";
+    
+    // Fichero que para cada autor indica el genero y rango de edad
+    private static String TRUTH = "/home/luis/Text_mining/pan13-author-profiling-test-corpus2-2013-04-29/truth-es.txt";
+    
+    // Ficheros quegeneramos nosotros, Bag of words y datos para weka
+    private static String BOW = "/home/luis/Text_mining/bow-es.txt";
+    private static String OUTPUT = "/home/luis/Text_mining/pan-ap-13-training-es-{task}.arff";
+    
+
     private static int NTERMS = 1000;
     
     public static void main(String[] args) {
@@ -36,11 +44,11 @@ public class GenerateBOWBaseline {
         
         try {
             Hashtable<String, TruthInfo> oTruth = ReadTruth(TRUTH);
-            ArrayList<String>oBOW = ReadBOW(PATH, BOW);
+            ArrayList<String> oBOW = ReadBOW(PATH, BOW);
             GenerateBaseline(PATH, oBOW, oTruth, OUTPUT.replace("{task}", "gender"), "MALE, FEMALE");
             GenerateBaseline(PATH, oBOW, oTruth, OUTPUT.replace("{task}", "age"), "10S, 20S, 30S");
             
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             
         }
     }
@@ -74,6 +82,7 @@ public class GenerateBOWBaseline {
                         try {
                             Element element = (Element)documents.item(i);
                             String sHtml = element.getTextContent();
+                            //System.out.println(sHtml);
                             String sContent = GetText(sHtml);
                             ArrayList<String> aTerms = getTokens(sContent);
 
@@ -259,6 +268,10 @@ public class GenerateBOWBaseline {
     public static String GetText(String html)
     {
         try {
+            
+            //System.out.println(html);
+           //html = html.replace("<br />", " ");
+            
             Html2Text html2text = new Html2Text();
             Reader in = new StringReader(html);
             html2text.parse(in);
