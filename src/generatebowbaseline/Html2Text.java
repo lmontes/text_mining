@@ -11,11 +11,13 @@ import javax.swing.text.html.parser.*;
  */
 public class Html2Text extends HTMLEditorKit.ParserCallback
 {
-   StringBuffer s;
-   int hasEmoticons;
+   private StringBuffer s;
+   public int hasEmoticons;
+   boolean isInsideHtmlEmphasisTag;
 
      public Html2Text() {
          hasEmoticons = 0;
+         isInsideHtmlEmphasisTag = false;
      }
 
      public void parse(Reader in) throws IOException {
@@ -26,22 +28,26 @@ public class Html2Text extends HTMLEditorKit.ParserCallback
      }
 
     @Override
-     public void handleText(char[] text, int pos) {
+     public void handleText(char[] text, int pos) {     
        s.append(text);
      }
     
-     /* No de momento
+    
+    /*
     @Override
     public void handleStartTag(HTML.Tag t, MutableAttributeSet a, int pos) {
-        System.out.println(t.toString());
+        if(t == HTML.Tag.EM || t == HTML.Tag.STRONG || t == HTML.Tag.B || t == HTML.Tag.U || t == HTML.Tag.I)
+            isInsideHtmlEmphasisTag = true;
     }
 
+    
     @Override
     public void handleEndTag(HTML.Tag t, int pos) {
-        System.out.println(t.toString());
+        if(t == HTML.Tag.EM || t == HTML.Tag.STRONG || t == HTML.Tag.B || t == HTML.Tag.U || t == HTML.Tag.I)
+            isInsideHtmlEmphasisTag = false;
     }
-     */
-
+    */
+     
     @Override
     public void handleSimpleTag(HTML.Tag t, MutableAttributeSet a, int pos) {
         // Si la etiqueta rompe el flujo de texto como br anyadimos espacio
@@ -56,10 +62,8 @@ public class Html2Text extends HTMLEditorKit.ParserCallback
             //System.out.println(s.toString());
         }
     }
-
+     
      public String getText() {
        return s.toString();
      }
-     
-    
 }

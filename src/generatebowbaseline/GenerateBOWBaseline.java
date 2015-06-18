@@ -27,14 +27,14 @@ import org.w3c.dom.NodeList;
 public class GenerateBOWBaseline {
     
     // Directorio donde se encuentran todos los ficheros XML
-    private static String PATH = "/home/luis/Text_mining/pan13-author-profiling-test-corpus2-2013-04-29/es-prueba";
+    private static String PATH = "/home/luis/Text_mining/pan13-author-profiling-test-corpus2-2013-04-29/es";
     
     // Fichero que para cada autor indica el genero y rango de edad
     private static String TRUTH = "/home/luis/Text_mining/pan13-author-profiling-test-corpus2-2013-04-29/truth-es.txt";
     
     // Ficheros quegeneramos nosotros, Bag of words y datos para weka
     private static String BOW = "/home/luis/Text_mining/bow-es.txt";
-    private static String OUTPUT = "/home/luis/Text_mining/pan-ap-13-training-es-{task}.arff";
+    private static String OUTPUT = "/home/luis/Text_mining/4-charflooding-es-{task}.arff";
     
 
     private static int NTERMS = 1000;
@@ -59,7 +59,7 @@ public class GenerateBOWBaseline {
         try {
             fw = new FileWriter(outputFile);
             fw.write(Weka.HeaderToWeka(aBOW, NTERMS, classValues));
-            fw.flush();
+            //fw.flush();
             
             File directory = new File(path);
             String [] files = directory.list();
@@ -67,7 +67,7 @@ public class GenerateBOWBaseline {
             {
                 System.out.println("--> Generating " + (iFile+1) + "/" + files.length);
                 try {
-                    Hashtable<String, Integer> oDocBOW = new Hashtable<String, Integer>();
+                    //Hashtable<String, Integer> oDocBOW = new Hashtable<String, Integer>();
 
                     String sFileName = files[iFile];
 
@@ -78,27 +78,23 @@ public class GenerateBOWBaseline {
                     NodeList documents = doc.getDocumentElement().getElementsByTagName("conversation");
                     String []fileInfo = sFileName.split("_");
                     String sAuthor = fileInfo[0];
-                    for (int i=0;i<documents.getLength();i++) {
+                    StringBuilder sAuthorContent = new StringBuilder();
+                    
+                    // Append all the texts of the same author in one string
+                    for (int i = 0; i < documents.getLength(); i++) {
                         try {
                             Element element = (Element)documents.item(i);
-                            String sHtml = element.getTextContent();
-                            //System.out.println(sHtml);
-                            String sContent = GetText(sHtml);
-                            ArrayList<String> aTerms = getTokens(sContent);
-
-                            for (int t=0; t<aTerms.size(); t++) {
-                                String sTerm = aTerms.get(t);
-                                int iFreq = 0;
-                                if (oDocBOW.containsKey(sTerm)) {
-                                    iFreq = oDocBOW.get(sTerm);
-                                }
-                                oDocBOW.put(sTerm, ++iFreq);
-                            }
+                            sAuthorContent.append(element.getTextContent());
+                            sAuthorContent.append(' ');
+                           
                         } catch (Exception ex) {
                                     System.out.println("ERROR: " + ex.toString());
                             String s = ex.toString();
                         }
                     }
+                    
+                    FeatureExtractor ext = new FeatureExtractor(sAuthorContent.toString());
+                    ext.processText();
                     
                     if (oTruth.containsKey(sAuthor)) {
                         TruthInfo truth = oTruth.get(sAuthor);
@@ -106,11 +102,11 @@ public class GenerateBOWBaseline {
                         String sAge = truth.Age.toUpperCase();
 
                         if (classValues.contains("MALE")) {
-                            fw.write(Weka.FeaturesToWeka(aBOW, oDocBOW, NTERMS, sGender));        
+                            fw.write(Weka.FeaturesToWeka(aBOW, ext.getBagOfWords(), ext.getFeatures(), NTERMS, sGender));        
                         } else {
-                            fw.write(Weka.FeaturesToWeka(aBOW, oDocBOW, NTERMS, sAge));
+                            fw.write(Weka.FeaturesToWeka(aBOW, ext.getBagOfWords(), ext.getFeatures(), NTERMS, sAge));
                         }
-                        fw.flush();
+                        //fw.flush();
                     }
 
                  } catch (Exception ex) {
@@ -198,7 +194,7 @@ public class GenerateBOWBaseline {
 
                     aBOW.add(sTerm);
                     fw.write(sTerm + ":::" + iFreq + "\n");
-                    fw.flush();
+                    //fw.flush();
                 }
             } catch (Exception ex) {
                 
@@ -244,7 +240,7 @@ public class GenerateBOWBaseline {
         return oTruth;
     }
     
-     public static ArrayList<String> getTokens(String text) throws IOException {
+    public static ArrayList<String> getTokens(String text) throws IOException {
         return getTokens(new SpanishAnalyzer(new String[0]), "myfield", text);
     }
     
@@ -267,11 +263,7 @@ public class GenerateBOWBaseline {
     
     public static String GetText(String html)
     {
-        try {
-            
-            //System.out.println(html);
-           //html = html.replace("<br />", " ");
-            
+        try {            
             Html2Text html2text = new Html2Text();
             Reader in = new StringReader(html);
             html2text.parse(in);

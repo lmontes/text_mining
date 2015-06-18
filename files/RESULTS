@@ -1,0 +1,14 @@
+age
+
+1-baseline 60.3309
+2-parse    62.8186
+3-emphasistags 62.8064
+4-charflooding 62.7941 (Without emphasistags)
+
+
+gender
+
+1-baseline 58.2475
+2-parse    59.596
+3-emphasistags 59.6446
+4-charflooding 59.6936 (Without emphasistags)

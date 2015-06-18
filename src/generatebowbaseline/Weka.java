@@ -2,8 +2,6 @@ package generatebowbaseline;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.TreeMap;
 
 /**
  *
@@ -23,12 +21,19 @@ public class Weka {
                 break;
             }
         }
+        
+        sHeader += "@attribute 'ncommas' real\n" +
+                "@attribute 'npoints' real\n" +
+                "@attribute 'ncolons' real\n" +
+                "@attribute 'character-flooding' real\n" +
+                "@attribute 'diff-word-ratio' real\n";
+        
         sHeader += "@attribute 'class' {" + classValue + "}\n" +
         "@data\n";
         return sHeader;
     }
     
-    public static String FeaturesToWeka(ArrayList<String> BOW, Hashtable<String, Integer>oDoc, int iN, String classValue)    {
+    public static String FeaturesToWeka(ArrayList<String> BOW, Hashtable<String, Integer>oDoc, Features oFeatures, int iN, String classValue)    {
         String weka = "";
         int iTotal = oDoc.size();
         for (int i=0;i<BOW.size();i++) {
@@ -44,6 +49,12 @@ public class Weka {
                 break;
             }
         }
+        
+        weka += (double)((double)oFeatures.nuberOfCommas / (double)iTotal) + "," + 
+                (double)((double)oFeatures.numberOfPoints / (double)iTotal) + "," + 
+                (double)((double)oFeatures.numberOfColons / (double)iTotal) + "," +
+                (double)oFeatures.numberOfCharacterFloodingWords + "," + 
+                oFeatures.differentWordsRatio + ",";
         
         weka +=  classValue + "\n";
         
