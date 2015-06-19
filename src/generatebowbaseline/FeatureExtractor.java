@@ -30,7 +30,7 @@ public class FeatureExtractor {
         f.nuberOfCommas = numberOfCommas;
         f.numberOfColons = numberOfColons;
         f.numberOfCharacterFloodingWords = numberOfcharacterFloodingWords;
-        f.differentWordsRatio = ((double)bagOfWords.size()) / ((double)totalWords);
+        f.totalWords = totalWords;
         
         return f;
     }
@@ -48,6 +48,9 @@ public class FeatureExtractor {
             Reader in = new StringReader(rawText);
             html2text.parse(in);
             text = html2text.getText();
+            
+            numberOfEmoticons = html2text.getNumberOfEmoticons();
+            numberOfEmphasisTags = html2text.getNumberOfEmphasisTags();
             
             // TODO implement something in Html2Text to 
             // obtain emoticons, emphasis tags, etc.
@@ -144,4 +147,6 @@ public class FeatureExtractor {
     int numberOfPoints;
     int numberOfCommas;
     int numberOfColons;
+    int numberOfEmoticons;
+    int numberOfEmphasisTags;
 }

@@ -12,12 +12,13 @@ import javax.swing.text.html.parser.*;
 public class Html2Text extends HTMLEditorKit.ParserCallback
 {
    private StringBuffer s;
-   public int hasEmoticons;
-   boolean isInsideHtmlEmphasisTag;
+   private int numberOfEmoticons;
+   private int numberOfEmphasisTags;
+   
 
      public Html2Text() {
-         hasEmoticons = 0;
-         isInsideHtmlEmphasisTag = false;
+         numberOfEmoticons = 0;
+         numberOfEmphasisTags = 0;
      }
 
      public void parse(Reader in) throws IOException {
@@ -33,14 +34,13 @@ public class Html2Text extends HTMLEditorKit.ParserCallback
      }
     
     
-    /*
     @Override
     public void handleStartTag(HTML.Tag t, MutableAttributeSet a, int pos) {
         if(t == HTML.Tag.EM || t == HTML.Tag.STRONG || t == HTML.Tag.B || t == HTML.Tag.U || t == HTML.Tag.I)
-            isInsideHtmlEmphasisTag = true;
+            ++numberOfEmphasisTags;
     }
 
-    
+    /*
     @Override
     public void handleEndTag(HTML.Tag t, int pos) {
         if(t == HTML.Tag.EM || t == HTML.Tag.STRONG || t == HTML.Tag.B || t == HTML.Tag.U || t == HTML.Tag.I)
@@ -56,14 +56,19 @@ public class Html2Text extends HTMLEditorKit.ParserCallback
             s.append(' ');
         
         // Si es una imagen nos quedamos el atributo alt
-        if(t == HTML.Tag.IMG) {
-            hasEmoticons = 1;
-            //System.out.println("Imagen "  + a.getAttribute(HTML.Attribute.CLASS) + " " + a.getAttribute(HTML.Attribute.SRC));
-            //System.out.println(s.toString());
-        }
+        if(t == HTML.Tag.IMG && a.containsAttribute(HTML.Attribute.CLASS, "smiley"))
+            ++numberOfEmoticons;
     }
      
      public String getText() {
        return s.toString();
+     }
+     
+     public int getNumberOfEmoticons() {
+         return numberOfEmoticons;
+     }
+     
+     public int getNumberOfEmphasisTags() {
+         return numberOfEmphasisTags;
      }
 }

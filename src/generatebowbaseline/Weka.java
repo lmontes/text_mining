@@ -22,11 +22,13 @@ public class Weka {
             }
         }
         
-        sHeader += "@attribute 'ncommas' real\n" +
-                "@attribute 'npoints' real\n" +
-                "@attribute 'ncolons' real\n" +
-                "@attribute 'character-flooding' real\n" +
-                "@attribute 'diff-word-ratio' real\n";
+        sHeader += "@attribute 'ratio-commas' real\n" +
+                "@attribute 'ratio-points' real\n" +
+                "@attribute 'ratio-colons' real\n" +
+                "@attribute 'ratio-character-flooding' real\n" +
+                "@attribute 'ratio-diff-word' real\n" + 
+                "@attribute 'ratio-emoticon' real\n" +  
+                "@attribute 'ratio-emphasis' real\n";
         
         sHeader += "@attribute 'class' {" + classValue + "}\n" +
         "@data\n";
@@ -50,11 +52,13 @@ public class Weka {
             }
         }
         
-        weka += (double)((double)oFeatures.nuberOfCommas / (double)iTotal) + "," + 
-                (double)((double)oFeatures.numberOfPoints / (double)iTotal) + "," + 
-                (double)((double)oFeatures.numberOfColons / (double)iTotal) + "," +
-                (double)oFeatures.numberOfCharacterFloodingWords + "," + 
-                oFeatures.differentWordsRatio + ",";
+        weka += (double)((double)oFeatures.nuberOfCommas / (double)oFeatures.totalWords) + "," + 
+                (double)((double)oFeatures.numberOfPoints / (double)oFeatures.totalWords) + "," + 
+                (double)((double)oFeatures.numberOfColons / (double)oFeatures.totalWords) + "," +
+                (double)((double)oFeatures.numberOfCharacterFloodingWords / (double)oFeatures.totalWords) + "," + 
+                (double)((double)iTotal / (double)oFeatures.totalWords) + "," +
+                (double)((double)oFeatures.numberOfEmoticons / (double)oFeatures.totalWords)+ "," +
+                (double)((double)oFeatures.numberOfEmphasisTags / (double)oFeatures.totalWords)+ ",";
         
         weka +=  classValue + "\n";
         

@@ -34,7 +34,7 @@ public class GenerateBOWBaseline {
     
     // Ficheros quegeneramos nosotros, Bag of words y datos para weka
     private static String BOW = "/home/luis/Text_mining/bow-es.txt";
-    private static String OUTPUT = "/home/luis/Text_mining/4-charflooding-es-{task}.arff";
+    private static String OUTPUT = "/home/luis/Text_mining/7-total-es-{task}.arff";
     
 
     private static int NTERMS = 1000;
