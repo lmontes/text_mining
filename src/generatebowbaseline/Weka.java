@@ -27,8 +27,10 @@ public class Weka {
                 "@attribute 'ratio-colons' real\n" +
                 "@attribute 'ratio-character-flooding' real\n" +
                 "@attribute 'ratio-diff-word' real\n" + 
-                "@attribute 'ratio-emoticon' real\n" +  
-                "@attribute 'ratio-emphasis' real\n";
+                //"@attribute 'ratio-emoticon' real\n" +  
+                "@attribute 'ratio-emphasis' real\n" +
+                "@attribute 'ratio-accents' real\n" +
+                "@attribute 'exclamation-flooding' real\n";
         
         sHeader += "@attribute 'class' {" + classValue + "}\n" +
         "@data\n";
@@ -36,7 +38,7 @@ public class Weka {
     }
     
     public static String FeaturesToWeka(ArrayList<String> BOW, Hashtable<String, Integer>oDoc, Features oFeatures, int iN, String classValue)    {
-        String weka = "";
+        StringBuilder builder = new StringBuilder();
         int iTotal = oDoc.size();
         for (int i=0;i<BOW.size();i++) {
             String sTerm = BOW.get(i);
@@ -44,24 +46,35 @@ public class Weka {
             if (oDoc.containsKey(sTerm)) {
                 freq = (double)((double)oDoc.get(sTerm) / (double)iTotal);
             }
-            
-            weka += freq + ",";
+ 
+            builder.append(freq);
+            builder.append(',');
             
             if (i>=iN) {
                 break;
             }
         }
         
-        weka += (double)((double)oFeatures.nuberOfCommas / (double)oFeatures.totalWords) + "," + 
-                (double)((double)oFeatures.numberOfPoints / (double)oFeatures.totalWords) + "," + 
-                (double)((double)oFeatures.numberOfColons / (double)oFeatures.totalWords) + "," +
-                (double)((double)oFeatures.numberOfCharacterFloodingWords / (double)oFeatures.totalWords) + "," + 
-                (double)((double)iTotal / (double)oFeatures.totalWords) + "," +
-                (double)((double)oFeatures.numberOfEmoticons / (double)oFeatures.totalWords)+ "," +
-                (double)((double)oFeatures.numberOfEmphasisTags / (double)oFeatures.totalWords)+ ",";
+        builder.append((double)((double)oFeatures.nuberOfCommas / (double)oFeatures.totalWords));
+        builder.append(',');
+        builder.append((double)((double)oFeatures.numberOfPoints / (double)oFeatures.totalWords));
+        builder.append(',');
+        builder.append((double)((double)oFeatures.numberOfColons / (double)oFeatures.totalWords));
+        builder.append(',');
+        builder.append((double)((double)oFeatures.numberOfCharacterFloodingWords / (double)oFeatures.totalWords));
+        builder.append(',');
+        builder.append((double)((double)iTotal / (double)oFeatures.totalWords));
+        builder.append(',');
+        builder.append((double)((double)oFeatures.numberOfEmphasisTags / (double)oFeatures.totalWords));
+        builder.append(',');
+        builder.append((double)((double)oFeatures.numberOfAccents / (double)iTotal));
+        builder.append(',');
+        builder.append((double)oFeatures.hasExclamationFlooding);
+        builder.append(',');
         
-        weka +=  classValue + "\n";
+        builder.append(classValue);
+        builder.append('\n');
         
-        return weka;
+        return builder.toString();
     }
 }
