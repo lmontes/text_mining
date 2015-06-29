@@ -21,6 +21,10 @@ public class FeatureExtractor {
         this.numberOfCommas = 0;
         this.numberOfColons = 0;
         this.numberOfcharacterFloodingWords = 0;
+        this.numberOfEmoticons = 0;
+        this.numberOfEmphasisTags = 0;
+        this.numberOfAccent = 0;
+        this.hasExclamationFlooding = 0;
     }
     
     public Features getFeatures() {
@@ -31,6 +35,10 @@ public class FeatureExtractor {
         f.numberOfColons = numberOfColons;
         f.numberOfCharacterFloodingWords = numberOfcharacterFloodingWords;
         f.totalWords = totalWords;
+        f.numberOfEmoticons = numberOfEmoticons;
+        f.numberOfEmphasisTags = numberOfEmphasisTags;
+        f.numberOfAccents = numberOfAccent;
+        f.hasExclamationFlooding = hasExclamationFlooding;
         
         return f;
     }
@@ -52,20 +60,26 @@ public class FeatureExtractor {
             numberOfEmoticons = html2text.getNumberOfEmoticons();
             numberOfEmphasisTags = html2text.getNumberOfEmphasisTags();
             
-            // TODO implement something in Html2Text to 
-            // obtain emoticons, emphasis tags, etc.
-            
             // Count possible interesting symbols
             // TODO !, ?, etc
             for (int i = 0; i < text.length(); ++i) {
                 if (text.charAt(i) == ',')
-                    numberOfCommas++;
+                    ++numberOfCommas;
                 if (text.charAt(i) == '.')
-                    numberOfPoints++;
+                    ++numberOfPoints;
                 if (text.charAt(i) == ':')
-                    numberOfColons++;
+                    ++numberOfColons;
+                if(isAccentued(text.charAt(i)))
+                    ++numberOfAccent;
             }
             
+            // Exclamation flooding !! ?? !?, etc.
+            for (int i = 1; i < text.length(); ++i) {
+                if((text.charAt(i) == '!' || text.charAt(i) == '?') && (text.charAt(i-1) == '!' || text.charAt(i-1) == '?')) {
+                    hasExclamationFlooding = 1;
+                    break;
+                }
+            }
             
             // Obtain and process all the words
             ArrayList<String> words = getTokens(text);
@@ -83,12 +97,6 @@ public class FeatureExtractor {
                 ++totalWords;
             }
             
-            
-            
-            
-           
-            
-        
         } catch (IOException ex) {
             text = "";
         }
@@ -117,6 +125,10 @@ public class FeatureExtractor {
         return "AEIOUaeiou".indexOf(c) != -1;
     }
     
+    private static boolean isAccentued(char c) {
+        return "ÁÉÍÓÚáéíóú".indexOf(c) != -1;
+    }
+    
     public static ArrayList<String> getTokens(String text) throws IOException {
         return getTokens(new SpanishAnalyzer(new String[0]), "myfield", text);
     }
@@ -143,10 +155,12 @@ public class FeatureExtractor {
     private String text;
     private Hashtable<String, Integer> bagOfWords;
     private int numberOfcharacterFloodingWords;
-    int totalWords;
-    int numberOfPoints;
-    int numberOfCommas;
-    int numberOfColons;
-    int numberOfEmoticons;
-    int numberOfEmphasisTags;
+    private int totalWords;
+    private int numberOfPoints;
+    private int numberOfCommas;
+    private int numberOfColons;
+    private int numberOfEmoticons;
+    private int numberOfEmphasisTags;
+    private int numberOfAccent;
+    private int hasExclamationFlooding;
 }

@@ -27,7 +27,7 @@ public class Weka {
                 "@attribute 'ratio-colons' real\n" +
                 "@attribute 'ratio-character-flooding' real\n" +
                 "@attribute 'ratio-diff-word' real\n" + 
-                //"@attribute 'ratio-emoticon' real\n" +  
+                "@attribute 'ratio-emoticon' real\n" +  
                 "@attribute 'ratio-emphasis' real\n" +
                 "@attribute 'ratio-accents' real\n" +
                 "@attribute 'exclamation-flooding' real\n";
@@ -46,7 +46,7 @@ public class Weka {
             if (oDoc.containsKey(sTerm)) {
                 freq = (double)((double)oDoc.get(sTerm) / (double)iTotal);
             }
- 
+            
             builder.append(freq);
             builder.append(',');
             
@@ -55,20 +55,32 @@ public class Weka {
             }
         }
         
-        builder.append((double)((double)oFeatures.nuberOfCommas / (double)oFeatures.totalWords));
-        builder.append(',');
-        builder.append((double)((double)oFeatures.numberOfPoints / (double)oFeatures.totalWords));
-        builder.append(',');
-        builder.append((double)((double)oFeatures.numberOfColons / (double)oFeatures.totalWords));
-        builder.append(',');
-        builder.append((double)((double)oFeatures.numberOfCharacterFloodingWords / (double)oFeatures.totalWords));
-        builder.append(',');
-        builder.append((double)((double)iTotal / (double)oFeatures.totalWords));
-        builder.append(',');
-        builder.append((double)((double)oFeatures.numberOfEmphasisTags / (double)oFeatures.totalWords));
-        builder.append(',');
-        builder.append((double)((double)oFeatures.numberOfAccents / (double)iTotal));
-        builder.append(',');
+        if(oFeatures.totalWords > 0) {
+            builder.append((double)((double)oFeatures.nuberOfCommas / (double)oFeatures.totalWords));
+            builder.append(',');
+            builder.append((double)((double)oFeatures.numberOfPoints / (double)oFeatures.totalWords));
+            builder.append(',');
+            builder.append((double)((double)oFeatures.numberOfColons / (double)oFeatures.totalWords));
+            builder.append(',');
+            builder.append((double)((double)oFeatures.numberOfCharacterFloodingWords / (double)oFeatures.totalWords));
+            builder.append(',');
+            builder.append((double)((double)iTotal / (double)oFeatures.totalWords));
+            builder.append(',');
+            builder.append((double)((double)oFeatures.numberOfEmoticons / (double)oFeatures.totalWords));
+            builder.append(',');
+            builder.append((double)((double)oFeatures.numberOfEmphasisTags / (double)oFeatures.totalWords));
+            builder.append(',');
+        } else {
+            builder.append("0.0,0.0,0.0,0.0,0.0,0.0,0.0,");
+        }
+        
+        if(iTotal > 0) {
+            builder.append((double)((double)oFeatures.numberOfAccents / (double)iTotal));
+            builder.append(',');
+        } else {
+            builder.append("0.0,");
+        }
+        
         builder.append((double)oFeatures.hasExclamationFlooding);
         builder.append(',');
         

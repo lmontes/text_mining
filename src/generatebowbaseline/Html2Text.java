@@ -56,7 +56,7 @@ public class Html2Text extends HTMLEditorKit.ParserCallback
             s.append(' ');
         
         // Si es una imagen nos quedamos el atributo alt
-        if(t == HTML.Tag.IMG && a.containsAttribute(HTML.Attribute.CLASS, "smiley"))
+        if(t == HTML.Tag.IMG/* && a.containsAttribute(HTML.Attribute.CLASS, "smiley")*/)
             ++numberOfEmoticons;
     }
      
