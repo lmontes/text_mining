@@ -6,12 +6,11 @@ import org.apache.lucene.analysis.standard.StandardFilter;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
 import org.apache.lucene.util.Version;
 
-public class SpanishAnalyzer extends Analyzer
-{
-    private String []STOP_WORDS_SPANISH;
+public class SpanishAnalyzer extends Analyzer {
 
-    public SpanishAnalyzer(String []SW)
-    {
+    private String[] STOP_WORDS_SPANISH;
+
+    public SpanishAnalyzer(String[] SW) {
         STOP_WORDS_SPANISH = SW;
     }
 
@@ -20,10 +19,10 @@ public class SpanishAnalyzer extends Analyzer
 
         TokenStream ts = new StopFilter(false,
                 new ASCIIFoldingFilter(new LowerCaseFilter(new StandardFilter(
-                    new StandardTokenizer(Version.LUCENE_30, reader)))), 
-                StopFilter.makeStopSet(STOP_WORDS_SPANISH, true), 
+                                        new StandardTokenizer(Version.LUCENE_30, reader)))),
+                StopFilter.makeStopSet(STOP_WORDS_SPANISH, true),
                 true);
-        
+
         return ts;
     }
 
