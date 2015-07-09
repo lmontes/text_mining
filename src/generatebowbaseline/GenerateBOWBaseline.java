@@ -7,7 +7,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import static java.lang.Math.log;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TreeMap;
@@ -125,6 +127,7 @@ public class GenerateBOWBaseline {
 
     private static ArrayList<String> ReadBOW(String corpusPath, String bowPath) {
         Hashtable<String, Integer> oBOW = new Hashtable<String, Integer>();
+        Hashtable<String, Integer> oIdf = new Hashtable<String, Integer>();
         ArrayList<String> aBOW = new ArrayList<String>();
 
         if (new File(bowPath).exists()) {
@@ -138,7 +141,7 @@ public class GenerateBOWBaseline {
 
                 while ((sCadena = bf.readLine()) != null) {
                     String[] data = sCadena.split(":::");
-                    if (data.length == 2) {
+                    if (data.length == 3) {
                         String sTerm = data[0];
                         aBOW.add(sTerm);
                     }
@@ -171,6 +174,9 @@ public class GenerateBOWBaseline {
                     DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
                     Document doc = dBuilder.parse(files[iFile]);
                     NodeList documents = doc.getDocumentElement().getElementsByTagName("conversation");
+                    // Set used to save the unique words of the author in order to compute IDF
+                    HashSet<String> uniqueWords = new HashSet<String>();
+                    
                     double iWords = 0;
                     double iDocs = documents.getLength();
                     for (int i = 0; i < iDocs; i++) {
@@ -180,13 +186,21 @@ public class GenerateBOWBaseline {
                         ArrayList<String> aTerms = getTokens(sContent);
                         for (int t = 0; t < aTerms.size(); t++) {
                             String sTerm = aTerms.get(t);
-                            int iFreq = 0;
-                            if (oBOW.containsKey(sTerm)) {
-                                iFreq = oBOW.get(sTerm);
-                            }
-                            oBOW.put(sTerm, ++iFreq);
+                            int freq = 0;
+                            if(oBOW.containsKey(sTerm))
+                                freq = oBOW.get(sTerm);
+                            oBOW.put(sTerm, ++freq);
+                            uniqueWords.add(sTerm);
                         }
                     }
+                    
+                    for(String word : uniqueWords) {
+                        int freq = 0;
+                        if(oIdf.containsKey(word))
+                            freq = oIdf.get(word);
+                        oIdf.put(word, ++freq);
+                    }
+                    
                 } catch (Exception ex) {
 
                 }
@@ -204,7 +218,8 @@ public class GenerateBOWBaseline {
                     int iFreq = oBOW.get(sTerm);
 
                     aBOW.add(sTerm);
-                    fw.write(sTerm + ":::" + iFreq + "\n");
+                    double idf = log(((double)(files.length))/((double)(oIdf.get(sTerm) + 1)));
+                    fw.write(sTerm + ":::" + iFreq + ":::" + idf + "\n");
                     //fw.flush();
                 }
             } catch (Exception ex) {

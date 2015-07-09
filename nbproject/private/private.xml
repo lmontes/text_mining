@@ -5,7 +5,6 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/home/luis/text_mining/src/generatebowbaseline/FeatureExtractor.java</file>
-            <file>file:/home/luis/text_mining/src/generatebowbaseline/Weka.java</file>
             <file>file:/home/luis/text_mining/src/generatebowbaseline/GenerateBOWBaseline.java</file>
             <file>file:/home/luis/text_mining/src/generatebowbaseline/Features.java</file>
             <file>file:/home/luis/text_mining/src/generatebowbaseline/Html2Text.java</file>
