@@ -36,14 +36,14 @@ public class Weka {
         return sHeader;
     }
 
-    public static String FeaturesToWeka(ArrayList<String> BOW, Hashtable<String, Integer> oDoc, Features oFeatures, int iN, String classValue) {
+    public static String FeaturesToWeka(ArrayList<String> BOW, ArrayList<Double> aIdf, Hashtable<String, Integer> oDoc, Features oFeatures, int iN, String classValue) {
         StringBuilder builder = new StringBuilder();
         int iTotal = oDoc.size();
         for (int i = 0; i < BOW.size(); i++) {
             String sTerm = BOW.get(i);
             double freq = 0;
             if (oDoc.containsKey(sTerm)) {
-                freq = (double) ((double) oDoc.get(sTerm) / (double) iTotal);
+                freq = (double) ((double) oDoc.get(sTerm) / (double) iTotal) * aIdf.get(i);
             }
 
             builder.append(freq);

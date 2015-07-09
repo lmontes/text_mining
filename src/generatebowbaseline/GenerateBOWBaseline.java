@@ -46,15 +46,16 @@ public class GenerateBOWBaseline {
         try {
             Hashtable<String, TruthInfo> oTruth = ReadTruth(TRUTH);
             ArrayList<String> oBOW = ReadBOW(PATH, BOW);
-            GenerateBaseline(PATH, oBOW, oTruth, OUTPUT.replace("{task}", "gender"), "MALE, FEMALE");
-            GenerateBaseline(PATH, oBOW, oTruth, OUTPUT.replace("{task}", "age"), "10S, 20S, 30S");
+            ArrayList<Double> oIdf = ReadIdf(PATH, BOW);
+            GenerateBaseline(PATH, oBOW, oIdf, oTruth, OUTPUT.replace("{task}", "gender"), "MALE, FEMALE");
+            GenerateBaseline(PATH, oBOW, oIdf, oTruth, OUTPUT.replace("{task}", "age"), "10S, 20S, 30S");
 
         } catch (Exception ex) {
 
         }
     }
 
-    private static void GenerateBaseline(String path, ArrayList<String> aBOW, Hashtable<String, TruthInfo> oTruth, String outputFile, String classValues) {
+    private static void GenerateBaseline(String path, ArrayList<String> aBOW, ArrayList<Double> aIdf, Hashtable<String, TruthInfo> oTruth, String outputFile, String classValues) {
         FileWriter fw = null;
 
         try {
@@ -102,9 +103,9 @@ public class GenerateBOWBaseline {
                         String sAge = truth.Age.toUpperCase();
 
                         if (classValues.contains("MALE")) {
-                            fw.write(Weka.FeaturesToWeka(aBOW, ext.getBagOfWords(), ext.getFeatures(), NTERMS, sGender));
+                            fw.write(Weka.FeaturesToWeka(aBOW, aIdf, ext.getBagOfWords(), ext.getFeatures(), NTERMS, sGender));
                         } else {
-                            fw.write(Weka.FeaturesToWeka(aBOW, ext.getBagOfWords(), ext.getFeatures(), NTERMS, sAge));
+                            fw.write(Weka.FeaturesToWeka(aBOW, aIdf, ext.getBagOfWords(), ext.getFeatures(), NTERMS, sAge));
                         }
                         //fw.flush();
                     }
@@ -236,6 +237,47 @@ public class GenerateBOWBaseline {
 
         return aBOW;
     }
+    
+    
+    private static ArrayList<Double> ReadIdf(String corpusPath, String bowPath) {
+        ArrayList<Double> aBOW = new ArrayList<Double>();
+
+        if (new File(bowPath).exists()) {
+            FileReader fr = null;
+            BufferedReader bf = null;
+
+            try {
+                fr = new FileReader(bowPath);
+                bf = new BufferedReader(fr);
+                String sCadena = "";
+
+                while ((sCadena = bf.readLine()) != null) {
+                    String[] data = sCadena.split(":::");
+                    if (data.length == 3)
+                        aBOW.add(Double.parseDouble(data[2]));
+                }
+                
+            } catch (Exception ex) {
+                System.out.println(ex.toString());
+            } finally {
+                if (bf != null) {
+                    try {
+                        bf.close();
+                    } catch (Exception k) {
+                    }
+                }
+                if (fr != null) {
+                    try {
+                        fr.close();
+                    } catch (Exception k) {
+                    }
+                }
+            }
+        }
+
+        return aBOW;
+    }
+    
 
     private static Hashtable<String, TruthInfo> ReadTruth(String path) {
         Hashtable<String, TruthInfo> oTruth = new Hashtable<String, TruthInfo>();
