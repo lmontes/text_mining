@@ -18,12 +18,14 @@ public class FeatureExtractor {
         this.totalWords = 0;
         this.numberOfPoints = 0;
         this.numberOfCommas = 0;
-        this.numberOfColons = 0;
         this.numberOfcharacterFloodingWords = 0;
         this.numberOfEmoticons = 0;
         this.numberOfEmphasisTags = 0;
         this.numberOfAccent = 0;
         this.hasExclamationFlooding = 0;
+        this.numberOfLaughs = 0;
+        this.hasEmail = 0;
+        this.usesAtInWords = 0;
     }
 
     public Features getFeatures() {
@@ -31,13 +33,15 @@ public class FeatureExtractor {
 
         f.numberOfPoints = numberOfPoints;
         f.nuberOfCommas = numberOfCommas;
-        f.numberOfColons = numberOfColons;
         f.numberOfCharacterFloodingWords = numberOfcharacterFloodingWords;
         f.totalWords = totalWords;
         f.numberOfEmoticons = numberOfEmoticons;
         f.numberOfEmphasisTags = numberOfEmphasisTags;
         f.numberOfAccents = numberOfAccent;
         f.hasExclamationFlooding = hasExclamationFlooding;
+        f.numberOfLaughs = numberOfLaughs;
+        f.hasEmail = hasEmail;
+        f.usesAtInWords = usesAtInWords;
 
         return f;
     }
@@ -59,16 +63,12 @@ public class FeatureExtractor {
             numberOfEmphasisTags = html2text.getNumberOfEmphasisTags();
 
             // Count possible interesting symbols
-            // TODO !, ?, etc
             for (int i = 0; i < text.length(); ++i) {
                 if (text.charAt(i) == ',') {
                     ++numberOfCommas;
                 }
                 if (text.charAt(i) == '.') {
                     ++numberOfPoints;
-                }
-                if (text.charAt(i) == ':') {
-                    ++numberOfColons;
                 }
                 if (isAccentued(text.charAt(i))) {
                     ++numberOfAccent;
@@ -94,10 +94,19 @@ public class FeatureExtractor {
                 }
                 bagOfWords.put(w, ++iFreq);
 
-                if (hasCharacterFlooding(w)) {
+                if (hasCharacterFlooding(w))
                     ++numberOfcharacterFloodingWords;
-                }
+                
+                if(isLaugh(w))
+                    ++numberOfLaughs;
 
+                if(w.contains("@")) {
+                    if(isEmail(w))
+                        hasEmail = 1;
+                    else
+                        usesAtInWords = 1;
+                }
+                
                 ++totalWords;
             }
 
@@ -134,6 +143,14 @@ public class FeatureExtractor {
     private static boolean isAccentued(char c) {
         return "ÁÉÍÓÚáéíóú".indexOf(c) != -1;
     }
+    
+    private static boolean isLaugh(String word) {
+        return word.matches(".*j[aeiou]j.*");
+    }
+    
+    private static boolean isEmail(String word) {
+        return word.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$");
+    }
 
     public static ArrayList<String> getTokens(String text) throws IOException {
         return getTokens(new SpanishAnalyzer(new String[0]), "myfield", text);
@@ -163,9 +180,11 @@ public class FeatureExtractor {
     private int totalWords;
     private int numberOfPoints;
     private int numberOfCommas;
-    private int numberOfColons;
     private int numberOfEmoticons;
     private int numberOfEmphasisTags;
     private int numberOfAccent;
     private int hasExclamationFlooding;
+    private int numberOfLaughs;
+    private int hasEmail;
+    private int usesAtInWords; // Si usa @ en las palabras Ejemplo Chic@
 }
