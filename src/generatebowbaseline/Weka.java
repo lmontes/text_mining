@@ -21,7 +21,7 @@ public class Weka {
                 break;
             }
         }
-                */
+        */
 
         sHeader += "@attribute 'ratio-commas' real\n"
                 + "@attribute 'ratio-points' real\n"
@@ -30,10 +30,12 @@ public class Weka {
                 + "@attribute 'ratio-emoticon' real\n"
                 + "@attribute 'ratio-emphasis' real\n"
                 + "@attribute 'ratio-laugh' real\n"
+                + "@attribute 'ratio-numbers' real\n"
                 + "@attribute 'ratio-accents' real\n"
                 + "@attribute 'exclamation-flooding' real\n"
                 + "@attribute 'email' real\n"
-                + "@attribute 'uses-at' real\n";
+                + "@attribute 'uses-at' real\n"
+                + "@attribute 'url' real\n";
 
         sHeader += "@attribute 'class' {" + classValue + "}\n"
                 + "@data\n";
@@ -42,9 +44,9 @@ public class Weka {
 
     public static String FeaturesToWeka(ArrayList<String> BOW, ArrayList<Double> aIdf, Hashtable<String, Integer> oDoc, Features oFeatures, int iN, String classValue) {
         StringBuilder builder = new StringBuilder();
-        int iTotal = oDoc.size();
         
         /*
+        int iTotal = oDoc.size();
         for (int i = 0; i < BOW.size(); i++) {
             String sTerm = BOW.get(i);
             double freq = 0;
@@ -69,7 +71,7 @@ public class Weka {
             builder.append(',');
             builder.append((double) ((double) oFeatures.numberOfCharacterFloodingWords / totalWords));
             builder.append(',');
-            builder.append((double) ((double) iTotal / totalWords));
+            builder.append((double) ((double) oFeatures.numberOfDifferentWords / totalWords));
             builder.append(',');
             builder.append((double) ((double) oFeatures.numberOfEmoticons / totalWords));
             builder.append(',');
@@ -77,15 +79,12 @@ public class Weka {
             builder.append(',');
             builder.append((double) ((double) oFeatures.numberOfLaughs / totalWords));
             builder.append(',');
-        } else {
-            builder.append("0.0,0.0,0.0,0.0,0.0,0.0,0.0,");
-        }
-
-        if (iTotal > 0) {
-            builder.append((double) ((double) oFeatures.numberOfAccents / (double) iTotal));
+            builder.append((double) ((double) oFeatures.numberOfNumbers / totalWords));
+            builder.append(',');
+            builder.append((double) ((double) oFeatures.numberOfAccents / oFeatures.numberOfDifferentWords));
             builder.append(',');
         } else {
-            builder.append("0.0,");
+            builder.append("0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,");
         }
 
         builder.append((double) oFeatures.hasExclamationFlooding);
@@ -95,6 +94,9 @@ public class Weka {
         builder.append(',');
         
         builder.append((double) oFeatures.usesAtInWords);
+        builder.append(',');
+        
+        builder.append((double) oFeatures.hasUrl);
         builder.append(',');
 
         builder.append(classValue);
