@@ -123,137 +123,157 @@ public class GenerateBOWBaseline {
 
     private static ArrayList<String> ReadBOW(String corpusPath, String bowPath, Hashtable<String, TruthInfo> oTruth) {
         Hashtable<String, Integer> oBOW = new Hashtable<String, Integer>();
-        // The part of the total that represents the number of words that are from men
-        Hashtable<String, Integer> menWords = new Hashtable<String, Integer>();
-        
+        ArrayList<String> auxBOW = new ArrayList<String>();
         ArrayList<String> aBOW = new ArrayList<String>();
 
-        if (new File(bowPath).exists()) {
-            FileReader fr = null;
-            BufferedReader bf = null;
+        FileReader fr = null;
+        BufferedReader bf = null;
 
-            try {
-                fr = new FileReader(bowPath);
-                bf = new BufferedReader(fr);
-                String sCadena = "";
+        if(!(new File(bowPath).exists()))
+            createBOW(corpusPath, bowPath, oTruth);
+        
+        try {
+            fr = new FileReader(bowPath);
+            bf = new BufferedReader(fr);
+            String sCadena = "";
 
-                while ((sCadena = bf.readLine()) != null) {
-                    String[] data = sCadena.split(":::");
-                    if (data.length == 5) {
-                        String sTerm = data[0];
-                        int total = Integer.parseInt(data[1]);
-                        double importance = Double.parseDouble(data[4]);
-                        // 0.65 0.35
-                        if((importance >= 0.55 || importance <= 0.45) && total > 100) {
-                            aBOW.add(sTerm);
-                        }
-                    }
-                }
-            } catch (Exception ex) {
-                System.out.println(ex.toString());
-            } finally {
-                if (bf != null) {
-                    try {
-                        bf.close();
-                    } catch (Exception k) {
-                    }
-                }
-                if (fr != null) {
-                    try {
-                        fr.close();
-                    } catch (Exception k) {
-                    }
+            while ((sCadena = bf.readLine()) != null) {
+                String[] data = sCadena.split(":::");
+                if (data.length == 3) {
+                    String sTerm = data[0];
+                    double importance = Double.parseDouble(data[2]);
+                    auxBOW.add(sTerm);
                 }
             }
-        } else {
-            File directory = new File(corpusPath);
-            String[] files = directory.list();
-
-            for (int iFile = 0; iFile < files.length; iFile++) {
-                System.out.println("--> Preprocessing " + (iFile + 1) + "/" + files.length);
-
+            
+            // Add the first and the last 200 to the BOW
+            int size = auxBOW.size();
+            for(int i = 0; i < 200; ++i) {
+                aBOW.add(auxBOW.get(i));
+                aBOW.add(auxBOW.get(size - i - 1));
+            }
+            
+        } catch (Exception ex) {
+            System.out.println(ex.toString());
+        } finally {
+            if (bf != null) {
                 try {
-                    File fXmlFile = new File(corpusPath + "/" + files[iFile]);
-                    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-                    Document doc = dBuilder.parse(fXmlFile);
-                    NodeList documents = doc.getDocumentElement().getElementsByTagName("conversation");
-                    
-                    String[] fileInfo = files[iFile].split("_");
-                    String sAuthor = fileInfo[0];
-                    boolean isMale = false;
-                    if(oTruth.containsKey(sAuthor)) {
-                        TruthInfo truth = oTruth.get(sAuthor);
-                        if(truth.Gender.equals("male"))
-                            isMale = true;
-                    }
-                    
-                    double iWords = 0;
-                    double iDocs = documents.getLength();
-                    for (int i = 0; i < iDocs; i++) {
-                        Element element = (Element) documents.item(i);
-                        String sHtml = element.getTextContent();
-                        String sContent = GetText(sHtml);
-                        ArrayList<String> aTerms = getTokens(sContent);
-                        for (int t = 0; t < aTerms.size(); t++) {
-                            String sTerm = aTerms.get(t);
-                            int freq = 0;
-                            if(oBOW.containsKey(sTerm))
-                                freq = oBOW.get(sTerm);
-                            oBOW.put(sTerm, ++freq);
-                            
-                            if(isMale) {
-                                int freqMen = 0;
-                                if(menWords.containsKey(sTerm))
-                                    freqMen = menWords.get(sTerm);
-                                menWords.put(sTerm, ++freqMen);
-                            }
-                        }
-                    }
-                } catch (Exception ex) {
-
+                    bf.close();
+                } catch (Exception k) {
                 }
             }
-
-            ValueComparator bvc = new ValueComparator(oBOW);
-            TreeMap<String, Integer> sorted_map = new TreeMap<String, Integer>(bvc);
-            sorted_map.putAll(oBOW);
-
-            FileWriter fw = null;
-            try {
-                fw = new FileWriter(bowPath);
-                for (Iterator it = sorted_map.keySet().iterator(); it.hasNext();) {
-                    String sTerm = (String) it.next();
-                    int iFreq = oBOW.get(sTerm);
-                    
-                    int menFreq = 0;
-                    if(menWords.containsKey(sTerm))
-                        menFreq = menWords.get(sTerm);
-                    int womenFreq = iFreq - menFreq;
-                    
-                    double importance = ((double)menFreq) / ((double)iFreq);
-                    
-                    fw.write(sTerm + ":::" + iFreq + ":::" + menFreq + ":::" + womenFreq + ":::" + importance + "\n");
-                    //fw.flush();
-                    
-                    if((importance >= 0.55 || importance <= 0.45) && iFreq > 100) {
-                            aBOW.add(sTerm);
-                    }
-                }
-            } catch (Exception ex) {
-
-            } finally {
-                if (fw != null) {
-                    try {
-                        fw.close();
-                    } catch (Exception k) {
-                    }
+            if (fr != null) {
+                try {
+                    fr.close();
+                } catch (Exception k) {
                 }
             }
         }
 
         return aBOW;
     }
+    
+    
+    private static void createBOW(String corpusPath, String bowPath, Hashtable<String, TruthInfo> oTruth) {
+        Hashtable<String, Integer> oBOW = new Hashtable<String, Integer>();
+        // The part of the total that represents the number of words that are from men
+        Hashtable<String, Integer> menWords = new Hashtable<String, Integer>();
+        Hashtable<String, Double> importance = new Hashtable<String, Double>();
+        
+        File directory = new File(corpusPath);
+        String[] files = directory.list();
+
+        for (int iFile = 0; iFile < files.length; iFile++) {
+            System.out.println("--> Preprocessing " + (iFile + 1) + "/" + files.length);
+
+            try {
+                File fXmlFile = new File(corpusPath + "/" + files[iFile]);
+                DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+                Document doc = dBuilder.parse(fXmlFile);
+                NodeList documents = doc.getDocumentElement().getElementsByTagName("conversation");
+
+                String[] fileInfo = files[iFile].split("_");
+                String sAuthor = fileInfo[0];
+                boolean isMale = false;
+                if(oTruth.containsKey(sAuthor)) {
+                    TruthInfo truth = oTruth.get(sAuthor);
+                    if(truth.Gender.equals("male"))
+                        isMale = true;
+                }
+
+                double iWords = 0;
+                double iDocs = documents.getLength();
+                for (int i = 0; i < iDocs; i++) {
+                    Element element = (Element) documents.item(i);
+                    String sHtml = element.getTextContent();
+                    String sContent = GetText(sHtml);
+                    ArrayList<String> aTerms = getTokens(sContent);
+                    for (int t = 0; t < aTerms.size(); t++) {
+                        String sTerm = aTerms.get(t);
+                        int freq = 0;
+                        if(oBOW.containsKey(sTerm))
+                            freq = oBOW.get(sTerm);
+                        oBOW.put(sTerm, ++freq);
+
+                        if(isMale) {
+                            int freqMen = 0;
+                            if(menWords.containsKey(sTerm))
+                                freqMen = menWords.get(sTerm);
+                            menWords.put(sTerm, ++freqMen);
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+
+            }
+        }
+
+        // Compute the importance of each word
+        Iterator it_ = oBOW.keySet().iterator();
+        while(it_.hasNext()) {
+            String sTerm = (String) it_.next();
+            int totalFreq = oBOW.get(sTerm);
+
+            // Filter the words that appear less than 100 times
+            if(totalFreq >= 200) {
+                int menFreq = 0;
+                if(menWords.containsKey(sTerm))
+                    menFreq = menWords.get(sTerm);
+
+                double wordImportance = ((double)menFreq) / ((double)totalFreq);
+                importance.put(sTerm, wordImportance);
+            }
+        }
+        
+        // Sort the word by importance
+        ValueComparator bvc = new ValueComparator(importance);
+        TreeMap<String, Double> sorted_map = new TreeMap<String, Double>(bvc);
+        sorted_map.putAll(importance);
+        
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter(bowPath);
+            for (Iterator it = sorted_map.keySet().iterator(); it.hasNext();) {
+                String sTerm = (String) it.next();
+                int iFreq = oBOW.get(sTerm);
+                double wordImportance = importance.get(sTerm);
+           
+                fw.write(sTerm + ":::" + iFreq + ":::" + wordImportance + "\n");
+                //fw.flush();
+            }
+        } catch (Exception ex) {
+
+        } finally {
+            if (fw != null) {
+                try {
+                    fw.close();
+                } catch (Exception k) {
+                }
+            }
+        }
+    }
+    
     
     private static Hashtable<String, TruthInfo> ReadTruth(String path) {
         Hashtable<String, TruthInfo> oTruth = new Hashtable<String, TruthInfo>();
