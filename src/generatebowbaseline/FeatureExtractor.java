@@ -179,7 +179,7 @@ public class FeatureExtractor {
         return word.matches("^(www)?[a-zA-Z]+[a-zA-Z0-9._-]+\\.[a-zA-Z]{2,4}$");
     }
     
-    private static boolean isNumber(String word) {
+    public static boolean isNumber(String word) {
         return word.matches("[0-9]*([\\.,][0-9]*)?");
     }
 

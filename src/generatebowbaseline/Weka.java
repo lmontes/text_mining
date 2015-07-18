@@ -9,20 +9,18 @@ import java.util.Hashtable;
  */
 public class Weka {
 
-    public static String HeaderToWeka(ArrayList<String> BOW, int iNTerms, String classValue) {
+    public static String HeaderToWeka(ArrayList<String> BOW, int nTerms, String classValue) {
         String sHeader = "@relation 'BOW'\n";
 
-        /*
         for (int i = 0; i < BOW.size(); i++) {
             String sTerm = BOW.get(i);
             sHeader += "@attribute 'term-" + sTerm.replaceAll("'", "quote") + "' real\n";
 
-            if (i >= iNTerms) {
+            if (i >= nTerms) {
                 break;
             }
         }
-        */
-
+        
         sHeader += "@attribute 'ratio-commas' real\n"
                 + "@attribute 'ratio-points' real\n"
                 + "@attribute 'ratio-character-flooding' real\n"
@@ -42,27 +40,23 @@ public class Weka {
         return sHeader;
     }
 
-    public static String FeaturesToWeka(ArrayList<String> BOW, ArrayList<Double> aIdf, Hashtable<String, Integer> oDoc, Features oFeatures, int iN, String classValue) {
+    public static String FeaturesToWeka(ArrayList<String> BOW, Hashtable<String, Integer> oDoc, Features oFeatures, int nTerms, String classValue) {
         StringBuilder builder = new StringBuilder();
-        
-        /*
-        int iTotal = oDoc.size();
+    
         for (int i = 0; i < BOW.size(); i++) {
             String sTerm = BOW.get(i);
             double freq = 0;
-            if (oDoc.containsKey(sTerm)) {
-                freq = (double) ((double) oDoc.get(sTerm) / (double) iTotal) * aIdf.get(i);
-            }
+            if (oDoc.containsKey(sTerm))
+                freq = 1;
 
             builder.append(freq);
             builder.append(',');
 
-            if (i >= iN) {
+            if (i >= nTerms) {
                 break;
             }
         }
-        */
-
+        
         if (oFeatures.totalWords > 0) {
             double totalWords = (double) oFeatures.totalWords;
             builder.append((double) ((double) oFeatures.nuberOfCommas / totalWords));

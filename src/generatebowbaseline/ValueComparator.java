@@ -1,7 +1,6 @@
 package generatebowbaseline;
 
 import java.util.Comparator;
-import java.util.Hashtable;
 import java.util.Map;
 
 /**

@@ -7,9 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import static java.lang.Math.log;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TreeMap;
@@ -34,7 +32,7 @@ public class GenerateBOWBaseline {
     // Fichero que para cada autor indica el genero y rango de edad
     private static String TRUTH = "/home/luis/Text_mining/pan13-author-profiling-test-corpus2-2013-04-29/truth-es.txt";
 
-    // Ficheros quegeneramos nosotros, Bag of words y datos para weka
+    // Ficheros que generamos nosotros, Bag of words y datos para weka
     private static String BOW = "/home/luis/Text_mining/bow-es.txt";
     private static String OUTPUT = "/home/luis/Text_mining/laugh-total-es-{task}.arff";
 
@@ -45,17 +43,16 @@ public class GenerateBOWBaseline {
 
         try {
             Hashtable<String, TruthInfo> oTruth = ReadTruth(TRUTH);
-            ArrayList<String> oBOW = ReadBOW(PATH, BOW);
-            ArrayList<Double> oIdf = ReadIdf(PATH, BOW);
-            GenerateBaseline(PATH, oBOW, oIdf, oTruth, OUTPUT.replace("{task}", "gender"), "MALE, FEMALE");
-            GenerateBaseline(PATH, oBOW, oIdf, oTruth, OUTPUT.replace("{task}", "age"), "10S, 20S, 30S");
+            ArrayList<String> oBOW = ReadBOW(PATH, BOW, oTruth);
+            GenerateBaseline(PATH, oBOW, oTruth, OUTPUT.replace("{task}", "gender"), "MALE, FEMALE");
+            GenerateBaseline(PATH, oBOW, oTruth, OUTPUT.replace("{task}", "age"), "10S, 20S, 30S");
 
         } catch (Exception ex) {
 
         }
     }
 
-    private static void GenerateBaseline(String path, ArrayList<String> aBOW, ArrayList<Double> aIdf, Hashtable<String, TruthInfo> oTruth, String outputFile, String classValues) {
+    private static void GenerateBaseline(String path, ArrayList<String> aBOW, /*ArrayList<Double> aIdf,*/ Hashtable<String, TruthInfo> oTruth, String outputFile, String classValues) {
         FileWriter fw = null;
 
         try {
@@ -68,8 +65,6 @@ public class GenerateBOWBaseline {
             for (int iFile = 0; iFile < files.length; iFile++) {
                 System.out.println("--> Generating " + (iFile + 1) + "/" + files.length);
                 try {
-                    //Hashtable<String, Integer> oDocBOW = new Hashtable<String, Integer>();
-
                     String sFileName = files[iFile];
 
                     File fXmlFile = new File(path + "/" + sFileName);
@@ -103,9 +98,9 @@ public class GenerateBOWBaseline {
                         String sAge = truth.Age.toUpperCase();
 
                         if (classValues.contains("MALE")) {
-                            fw.write(Weka.FeaturesToWeka(aBOW, aIdf, ext.getBagOfWords(), ext.getFeatures(), NTERMS, sGender));
+                            fw.write(Weka.FeaturesToWeka(aBOW, ext.getBagOfWords(), ext.getFeatures(), NTERMS, sGender));
                         } else {
-                            fw.write(Weka.FeaturesToWeka(aBOW, aIdf, ext.getBagOfWords(), ext.getFeatures(), NTERMS, sAge));
+                            fw.write(Weka.FeaturesToWeka(aBOW, ext.getBagOfWords(), ext.getFeatures(), NTERMS, sAge));
                         }
                         //fw.flush();
                     }
@@ -126,9 +121,11 @@ public class GenerateBOWBaseline {
         }
     }
 
-    private static ArrayList<String> ReadBOW(String corpusPath, String bowPath) {
+    private static ArrayList<String> ReadBOW(String corpusPath, String bowPath, Hashtable<String, TruthInfo> oTruth) {
         Hashtable<String, Integer> oBOW = new Hashtable<String, Integer>();
-        Hashtable<String, Integer> oIdf = new Hashtable<String, Integer>();
+        // The part of the total that represents the number of words that are from men
+        Hashtable<String, Integer> menWords = new Hashtable<String, Integer>();
+        
         ArrayList<String> aBOW = new ArrayList<String>();
 
         if (new File(bowPath).exists()) {
@@ -142,9 +139,14 @@ public class GenerateBOWBaseline {
 
                 while ((sCadena = bf.readLine()) != null) {
                     String[] data = sCadena.split(":::");
-                    if (data.length == 3) {
+                    if (data.length == 5) {
                         String sTerm = data[0];
-                        aBOW.add(sTerm);
+                        int total = Integer.parseInt(data[1]);
+                        double importance = Double.parseDouble(data[4]);
+                        // 0.65 0.35
+                        if((importance >= 0.55 || importance <= 0.45) && total > 100) {
+                            aBOW.add(sTerm);
+                        }
                     }
                 }
             } catch (Exception ex) {
@@ -165,18 +167,26 @@ public class GenerateBOWBaseline {
             }
         } else {
             File directory = new File(corpusPath);
-            File[] files = directory.listFiles();
+            String[] files = directory.list();
 
             for (int iFile = 0; iFile < files.length; iFile++) {
                 System.out.println("--> Preprocessing " + (iFile + 1) + "/" + files.length);
 
                 try {
+                    File fXmlFile = new File(corpusPath + "/" + files[iFile]);
                     DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
                     DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-                    Document doc = dBuilder.parse(files[iFile]);
+                    Document doc = dBuilder.parse(fXmlFile);
                     NodeList documents = doc.getDocumentElement().getElementsByTagName("conversation");
-                    // Set used to save the unique words of the author in order to compute IDF
-                    HashSet<String> uniqueWords = new HashSet<String>();
+                    
+                    String[] fileInfo = files[iFile].split("_");
+                    String sAuthor = fileInfo[0];
+                    boolean isMale = false;
+                    if(oTruth.containsKey(sAuthor)) {
+                        TruthInfo truth = oTruth.get(sAuthor);
+                        if(truth.Gender.equals("male"))
+                            isMale = true;
+                    }
                     
                     double iWords = 0;
                     double iDocs = documents.getLength();
@@ -191,17 +201,15 @@ public class GenerateBOWBaseline {
                             if(oBOW.containsKey(sTerm))
                                 freq = oBOW.get(sTerm);
                             oBOW.put(sTerm, ++freq);
-                            uniqueWords.add(sTerm);
+                            
+                            if(isMale) {
+                                int freqMen = 0;
+                                if(menWords.containsKey(sTerm))
+                                    freqMen = menWords.get(sTerm);
+                                menWords.put(sTerm, ++freqMen);
+                            }
                         }
                     }
-                    
-                    for(String word : uniqueWords) {
-                        int freq = 0;
-                        if(oIdf.containsKey(word))
-                            freq = oIdf.get(word);
-                        oIdf.put(word, ++freq);
-                    }
-                    
                 } catch (Exception ex) {
 
                 }
@@ -217,11 +225,20 @@ public class GenerateBOWBaseline {
                 for (Iterator it = sorted_map.keySet().iterator(); it.hasNext();) {
                     String sTerm = (String) it.next();
                     int iFreq = oBOW.get(sTerm);
-
-                    aBOW.add(sTerm);
-                    double idf = log(((double)(files.length))/((double)(oIdf.get(sTerm) + 1)));
-                    fw.write(sTerm + ":::" + iFreq + ":::" + idf + "\n");
+                    
+                    int menFreq = 0;
+                    if(menWords.containsKey(sTerm))
+                        menFreq = menWords.get(sTerm);
+                    int womenFreq = iFreq - menFreq;
+                    
+                    double importance = ((double)menFreq) / ((double)iFreq);
+                    
+                    fw.write(sTerm + ":::" + iFreq + ":::" + menFreq + ":::" + womenFreq + ":::" + importance + "\n");
                     //fw.flush();
+                    
+                    if((importance >= 0.55 || importance <= 0.45) && iFreq > 100) {
+                            aBOW.add(sTerm);
+                    }
                 }
             } catch (Exception ex) {
 
@@ -238,47 +255,6 @@ public class GenerateBOWBaseline {
         return aBOW;
     }
     
-    
-    private static ArrayList<Double> ReadIdf(String corpusPath, String bowPath) {
-        ArrayList<Double> aBOW = new ArrayList<Double>();
-
-        if (new File(bowPath).exists()) {
-            FileReader fr = null;
-            BufferedReader bf = null;
-
-            try {
-                fr = new FileReader(bowPath);
-                bf = new BufferedReader(fr);
-                String sCadena = "";
-
-                while ((sCadena = bf.readLine()) != null) {
-                    String[] data = sCadena.split(":::");
-                    if (data.length == 3)
-                        aBOW.add(Double.parseDouble(data[2]));
-                }
-                
-            } catch (Exception ex) {
-                System.out.println(ex.toString());
-            } finally {
-                if (bf != null) {
-                    try {
-                        bf.close();
-                    } catch (Exception k) {
-                    }
-                }
-                if (fr != null) {
-                    try {
-                        fr.close();
-                    } catch (Exception k) {
-                    }
-                }
-            }
-        }
-
-        return aBOW;
-    }
-    
-
     private static Hashtable<String, TruthInfo> ReadTruth(String path) {
         Hashtable<String, TruthInfo> oTruth = new Hashtable<String, TruthInfo>();
 
