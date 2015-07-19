@@ -39,13 +39,6 @@ public class Html2Text extends HTMLEditorKit.ParserCallback {
         }
     }
 
-    /*
-     @Override
-     public void handleEndTag(HTML.Tag t, int pos) {
-     if(t == HTML.Tag.EM || t == HTML.Tag.STRONG || t == HTML.Tag.B || t == HTML.Tag.U || t == HTML.Tag.I)
-     isInsideHtmlEmphasisTag = false;
-     }
-     */
     @Override
     public void handleSimpleTag(HTML.Tag t, MutableAttributeSet a, int pos) {
         // Si la etiqueta rompe el flujo de texto como br anyadimos espacio

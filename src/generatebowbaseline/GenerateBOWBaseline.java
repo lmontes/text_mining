@@ -34,7 +34,7 @@ public class GenerateBOWBaseline {
 
     // Ficheros que generamos nosotros, Bag of words y datos para weka
     private static String BOW = "/home/luis/Text_mining/bow-es.txt";
-    private static String OUTPUT = "/home/luis/Text_mining/laugh-total-es-{task}.arff";
+    private static String OUTPUT = "/home/luis/Text_mining/es-{task}.arff";
 
     private static int NTERMS = 1000;
 
@@ -141,7 +141,6 @@ public class GenerateBOWBaseline {
                 String[] data = sCadena.split(":::");
                 if (data.length == 3) {
                     String sTerm = data[0];
-                    double importance = Double.parseDouble(data[2]);
                     auxBOW.add(sTerm);
                 }
             }
@@ -178,7 +177,7 @@ public class GenerateBOWBaseline {
         Hashtable<String, Integer> oBOW = new Hashtable<String, Integer>();
         // The part of the total that represents the number of words that are from men
         Hashtable<String, Integer> menWords = new Hashtable<String, Integer>();
-        Hashtable<String, Double> importance = new Hashtable<String, Double>();
+        Hashtable<String, Double> ratio = new Hashtable<String, Double>();
         
         File directory = new File(corpusPath);
         String[] files = directory.list();
@@ -229,7 +228,7 @@ public class GenerateBOWBaseline {
             }
         }
 
-        // Compute the importance of each word
+        // Compute the ratio of each word
         Iterator it_ = oBOW.keySet().iterator();
         while(it_.hasNext()) {
             String sTerm = (String) it_.next();
@@ -241,15 +240,15 @@ public class GenerateBOWBaseline {
                 if(menWords.containsKey(sTerm))
                     menFreq = menWords.get(sTerm);
 
-                double wordImportance = ((double)menFreq) / ((double)totalFreq);
-                importance.put(sTerm, wordImportance);
+                double wordRatio = ((double)menFreq) / ((double)totalFreq);
+                ratio.put(sTerm, wordRatio);
             }
         }
         
-        // Sort the word by importance
-        ValueComparator bvc = new ValueComparator(importance);
+        // Sort the word by ratio
+        ValueComparator bvc = new ValueComparator(ratio);
         TreeMap<String, Double> sorted_map = new TreeMap<String, Double>(bvc);
-        sorted_map.putAll(importance);
+        sorted_map.putAll(ratio);
         
         FileWriter fw = null;
         try {
@@ -257,9 +256,9 @@ public class GenerateBOWBaseline {
             for (Iterator it = sorted_map.keySet().iterator(); it.hasNext();) {
                 String sTerm = (String) it.next();
                 int iFreq = oBOW.get(sTerm);
-                double wordImportance = importance.get(sTerm);
+                double wordRatio = ratio.get(sTerm);
            
-                fw.write(sTerm + ":::" + iFreq + ":::" + wordImportance + "\n");
+                fw.write(sTerm + ":::" + iFreq + ":::" + wordRatio + "\n");
                 //fw.flush();
             }
         } catch (Exception ex) {

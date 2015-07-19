@@ -20,7 +20,7 @@ public class Weka {
                 break;
             }
         }
-        
+         
         sHeader += "@attribute 'ratio-commas' real\n"
                 + "@attribute 'ratio-points' real\n"
                 + "@attribute 'ratio-character-flooding' real\n"
