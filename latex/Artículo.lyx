@@ -1,0 +1,1677 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\begin_preamble
+
+\usepackage{acl2015}\usepackage{times}\usepackage{url}\usepackage{latexsym}
+
+\title{Author profiling}
+
+\author{Luis Miguel Montes Novella \\
+  {\tt lmontesnovella@gmail.com} \\}
+\end_preamble
+\use_default_options false
+\maintain_unincluded_children false
+\language english
+\language_package none
+\inputencoding auto
+\fontencoding default
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize 11
+\spacing single
+\use_hyperref true
+\pdf_bookmarks true
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder true
+\pdf_colorlinks false
+\pdf_backref false
+\pdf_pdfusetitle true
+\papersize a4paper
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 0
+\use_mathdots 0
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date true
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+maketitle
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Abstract
+En este artículo se describe cómo se ha aproximado la tarea de 
+\shape italic
+author profiling
+\shape default
+ para la identificación de género y rango de edad.
+ Para llevar a cabo esta tarea se han extraído una serie de características
+ del texto que se cree que pueden ayudar a diferenciar entre géneros o rangos
+ de edad.
+ Las características extraídas son el uso de signos de puntuación, el uso
+ de emoticonos, el uso de ciertas características en el estilo de escritura
+ como el 
+\shape italic
+character flooding
+\shape default
+, el uso de la arroba para denotar que la palabra puede contener una a o
+ una o, la inclusión de números, direcciones 
+\shape italic
+web
+\shape default
+ o correos electrónicos en los textos, etc.
+ Además de estas características se ha obtenido un 
+\shape italic
+BoW
+\shape default
+ 
+\shape italic
+(Bag of Words)
+\shape default
+ con las palabras que ayudan a diferenciar mejor entre géneros para mejorar
+ los resultados en esta tarea.
+ Para la evaluación de los resultados se ha usado el 
+\shape italic
+software Weka
+\shape default
+, el modelo se ha entrenado con el algoritmo 
+\shape italic
+Naive Bayes
+\shape default
+ y para la validación de resultados se ha usado la técnica de validación
+ cruzada.
+\end_layout
+
+\begin_layout Section
+Introducción
+\end_layout
+
+\begin_layout Standard
+El 
+\shape italic
+author profiling
+\shape default
+ es una tarea que consiste en la identificación de tipos o clases de autores
+ a partir de textos escritos mediante la búsqueda de patrones comunes en
+ el estilo de escritura.
+ Esta clasificación de autores en diferentes grupos tiene numerosas aplicaciones
+ como por ejemplo la identificación de personas sobre las que dirigir las
+ campañas publicitarias o políticas.
+ En concreto en este trabajo se han seguido dos aproximaciones, la detección
+ de género y la detección del rango de edad.
+ Para la primera aproximación sólo tenemos dos posibilidades, detectar si
+ se trata de un hombre o de una mujer.
+ En cuanto a la segunda aproximación tenemos 3 posibles rangos de edad,
+ adolescentes (10s), veinteañeros (20s) y treintañeros (30s).
+\end_layout
+
+\begin_layout Section
+
+\shape italic
+Dataset
+\end_layout
+
+\begin_layout Standard
+El 
+\shape italic
+dataset
+\shape default
+ original de la competición 
+\shape italic
+PAN
+\shape default
+ sobre 
+\shape italic
+author profiling
+\shape default
+ contiene textos de 374100 autores extraídos de redes sociales, se compone
+ de una serie de ficheros, uno por autor, con todos los textos que éste
+ ha escrito.
+ Estos textos se encuentran escritos en dos idiomas, hay 283240 textos en
+ inglés y 90860 en castellano.
+ Como el 
+\shape italic
+dataset
+\shape default
+ es muy grande, para poder afrontar el problema de una forma más sencilla
+ no se ha usado el 
+\shape italic
+dataset
+\shape default
+ completo sino que se ha empleado un 
+\shape italic
+dataset
+\shape default
+ reducido, en concreto se ha usado el 
+\shape italic
+dataset
+\shape default
+ de test en castellano.
+ Este 
+\shape italic
+dataset
+\shape default
+ contiene un total de 8160 ficheros donde la mitad de los autores son hombres
+ y la otra mitad mujeres, con respecto a las edades hay 288 adolescentes,
+ 4608 veinteañeros y 3264 treintañeros.
+ En la siguiente tabla se puede ver la distribución de las personas por
+ clase, como se puede observar la distribución en cuanto a género es equilibrada
+ pero en lo referente al rango de edad el número de muestras de cada clase
+ es muy diferente.
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace defskip
+\end_inset
+
+
+\begin_inset Float table
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="4" columns="5">
+<features tabularvalignment="middle">
+<column alignment="left" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+10s
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+20s
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+30s
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+TOTAL
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Hombre
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+144
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+2304
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+1632
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+\series bold
+4080
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Mujer
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+144
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+2304
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+1632
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+\series bold
+4080
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+TOTAL
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+\series bold
+288
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+\series bold
+4608
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+\series bold
+3264
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Distribución de los totales por clase
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Propuesta del alumno
+\end_layout
+
+\begin_layout Standard
+En este apartado se describen las características extraídas del texto y
+ las variables obtenidas a partir de éstas para entrenar un clasificador
+ mediante el algoritmo 
+\shape italic
+Naive Bayes
+\shape default
+.
+ Este clasificador se ha entrenado mediante el 
+\shape italic
+software
+\shape default
+ 
+\shape italic
+Weka
+\shape default
+ y se ha usado validación cruzada con 10 particiones para obtener una medida
+ del porcentaje de aciertos del clasificador.
+\end_layout
+
+\begin_layout Subsection
+Información extraída del texto
+\end_layout
+
+\begin_layout Subsubsection
+Mejoras en el procesamiento de código 
+\shape italic
+HTML
+\end_layout
+
+\begin_layout Standard
+En primer lugar se ha mejorado la extracción de 
+\shape italic
+tokens
+\shape default
+ o palabras desde el código 
+\shape italic
+HTML
+\shape default
+.
+ Antes cada vez que aparecía una etiqueta 
+\shape italic
+HTML
+\shape default
+ de salto de línea (
+\shape italic
+br
+\shape default
+) se ignoraba y las dos palabras que tenía alrededor se unían generándose
+ palabras que no existían dentro del vocabulario de los textos.
+ Esto hacía que las frecuencias de aparición no fueran correctas.
+ Ahora al realizar el preproceso siempre que aparece una etiqueta de salto
+ de línea se sustituye por un espacio para que la 
+\shape italic
+tokenización
+\shape default
+ sea correcta.
+ Además de esto durante el parseo de 
+\shape italic
+HTML
+\shape default
+ se extraen nuevas características que se detallarán en las siguientes secciones.
+ 
+\end_layout
+
+\begin_layout Subsubsection
+
+\shape italic
+Character flooding
+\end_layout
+
+\begin_layout Standard
+El 
+\shape italic
+character flooding
+\shape default
+ es un estilo de escritura que consiste en el alargamiento de palabras duplicand
+o letras o añadiendo letras que no existen como por ejemplo la o en 
+\shape italic
+hooola
+\shape default
+ o la h en 
+\shape italic
+tengohh
+\shape default
+.
+ Una alta frecuencia de aparición de esta característica en las palabras
+ puede indicar que se trata de una persona joven por lo que puede ayudar
+ a detectar la edad.
+\end_layout
+
+\begin_layout Standard
+Se ha usado un algoritmo para detectar 
+\shape italic
+character flooding
+\shape default
+ a nivel de palabras.
+ Para ello se ha considerado que una palabra tiene 
+\shape italic
+character flooding
+\shape default
+ siempre que contiene más de dos vocales seguidas o dos caracteres seguidos
+ que no sean c, l, r o vocal.
+ Se han excluido estos caracteres porque en castellano pueden aparecer juntos.
+ No se ha tenido en cuenta el idioma de la palabra por lo que hay algunas
+ palabras en inglés dentro de los textos que se considera que tienen 
+\shape italic
+character flooding.
+
+\shape default
+ Hay que tener en cuenta que algunos 
+\shape italic
+tokens
+\shape default
+ también pueden ser números por lo que si un 
+\shape italic
+token
+\shape default
+ es un número no se considera 
+\shape italic
+character flooding
+\shape default
+.
+ Otro caso especial de 
+\shape italic
+character flooding
+\shape default
+ que se ha considerado ha sido el de los signos de interrogación y exclamación,
+ en este caso se considera que hay 
+\shape italic
+character flooding
+\shape default
+ cuando aparecen dos de estos símbolos juntos.
+\end_layout
+
+\begin_layout Subsubsection
+Signos de puntuación
+\end_layout
+
+\begin_layout Standard
+Se ha tenido en cuenta el uso de signos de puntuación como puntos, comas
+ y acentos ya que un mayor uso de estos símbolos puede indicar que la persona
+ tiene mayor edad.
+\end_layout
+
+\begin_layout Subsubsection
+Emoticonos
+\end_layout
+
+\begin_layout Standard
+En los mensajes de 
+\shape italic
+chat
+\shape default
+ y redes sociales es muy frecuente el uso de emoticonos, la frecuencia de
+ uso podría estar relacionada con la edad ya que su uso se extendió con
+ la aparición de los teléfonos móviles y esto es algo bastante reciente.
+ También podrían estar muy relacionados con el género ya que se usan frecuenteme
+nte para expresar sentimientos y en este aspecto suele haber muchas diferencias
+ entre hombres y mujeres.
+ A la hora de procesar los textos se ha considerado que todas las etiquetas
+ 
+\shape italic
+HTML
+\shape default
+ de imagen (
+\shape italic
+img
+\shape default
+) que aparecen en el texto se corresponden con emoticonos.
+\end_layout
+
+\begin_layout Subsubsection
+Etiquetas 
+\shape italic
+HTML
+\shape default
+ de énfasis
+\end_layout
+
+\begin_layout Standard
+En el lenguaje 
+\shape italic
+HTML
+\shape default
+ existen una serie de etiquetas que sirven para resaltar el significado
+ del texto que contienen, estas etiquetas hacen que el texto aparezca con
+ un estilo diferente como negrita cursiva o subrayado.
+ La frecuencia del uso de estilos al escribir podría ayudar a diferenciar
+ el género y edad de las personas.
+ Por tanto se ha tenido en cuenta si en el código 
+\shape italic
+HTML
+\shape default
+ del mensaje aparecen etiquetas de énfasis como 
+\shape italic
+em
+\shape default
+, 
+\shape italic
+strong
+\shape default
+, 
+\shape italic
+b
+\shape default
+, 
+\shape italic
+u
+\shape default
+ e 
+\shape italic
+i
+\shape default
+.
+\end_layout
+
+\begin_layout Subsubsection
+Detección de risas
+\end_layout
+
+\begin_layout Standard
+La frecuencia del uso de risas en los mensajes de 
+\shape italic
+chat
+\shape default
+ podría ayudar a detectar el género o edad de una persona.
+ Para ello se ha realizado el parseo del texto buscando si los 
+\shape italic
+tokens
+\shape default
+ que aparecen se corresponden con risas.
+ Se ha considerado una risa toda cadena de texto que contiene en su interior
+ una subcadena como
+\shape italic
+ jaj
+\shape default
+, 
+\shape italic
+jej
+\shape default
+, 
+\shape italic
+jij
+\shape default
+, 
+\shape italic
+joj
+\shape default
+ o 
+\shape italic
+juj
+\shape default
+.
+ Esta detección se ha hecho mediante el uso de expresiones regulares sobre
+ cada uno de los 
+\shape italic
+tokens
+\shape default
+.
+\end_layout
+
+\begin_layout Subsubsection
+Número de palabras diferentes
+\end_layout
+
+\begin_layout Standard
+Se ha contado el número de palabras diferentes que usa una persona ya que
+ se puede pensar que cuanto mayor sea su edad más rico será su vocabulario
+ y por tanto usará un mayor número de palabras diferentes.
+\end_layout
+
+\begin_layout Subsubsection
+Otros
+\end_layout
+
+\begin_layout Standard
+Además de todo lo anterior también se ha procesado el texto con expresiones
+ regulares en busca de direcciones 
+\shape italic
+web
+\shape default
+, correos electrónicos y números para ver si la aparición de éstos en un
+ texto puede ayudar a diferenciar entre rango de edad o género.
+ También se ha buscado si en las palabras aparece el símbolo 
+\shape italic
+@
+\shape default
+ para denotar que esa letra puede ser tanto una a como una o ya que es algo
+ que está de moda desde hace pocos años y podría ayudar a diferenciar el
+ rango de edad.
+ Para evitar confundir estas palabras con los correos electrónicos sólo
+ se cuentan los 
+\shape italic
+tokens
+\shape default
+ que no son correos electrónicos.
+\end_layout
+
+\begin_layout Subsubsection
+
+\shape italic
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Bag-of-Words"
+
+\end_inset
+
+Bag of Words
+\end_layout
+
+\begin_layout Standard
+Un 
+\shape italic
+BoW
+\shape default
+ 
+\shape italic
+(Bag of Words)
+\shape default
+ es un conjunto de palabras que se usa para representar un texto, normalmente
+ se escogen palabras muy comunes o que ayudan a discriminar entre las diferentes
+ clases que hay que diferenciar.
+ En el 
+\shape italic
+baseline
+\shape default
+ se usa un 
+\shape italic
+BoW
+\shape default
+ con las frecuencias de aparición de las 1000 palabras más comunes dentro
+ de cada autor.
+ 
+\end_layout
+
+\begin_layout Standard
+En este caso se ha modificado la forma de obtener el 
+\shape italic
+BoW
+\shape default
+ para intentar mejorar los resultados en la tarea de género, para ello en
+ el preproceso del texto se ha obtenido un ratio que indica la capacidad
+ de discriminación de una palabra.
+ Se ha contado el número de veces que aparece una palabra (
+\begin_inset Formula $frec_{w}$
+\end_inset
+
+) y el número de veces que usa esa palabra algún hombre (
+\begin_inset Formula $frec_{wh}$
+\end_inset
+
+).
+ Con estos datos se ha obtenido un ratio 
+\begin_inset Formula $ratio_{w}$
+\end_inset
+
+ para cada palabra como indica la siguiente fórmula:
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace defskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $ratio_{w}=\frac{frec_{wh}}{frec_{w}}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace defskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Con este ratio podemos saber si una palabra es más usada por hombres o por
+ mujeres, los valores alrededor de 0.5 indican que esa palabra no ayuda a
+ diferenciar entre género, los valores mayores de 0.5 indican que esa palabra
+ suele ser más usada por los hombres y valores menores de 0.5 indican que
+ esa palabra suele ser más usada por las mujeres.
+ Una vez calculado este ratio se han ordenado las palabras por su valor.
+ Para evitar que palabras con pocas apariciones tengan ratios muy altos
+ se han eliminado todas las palabras que aparecen menos de 200 veces a lo
+ largo de los textos.
+ A la hora de escoger las palabras para incluir en el 
+\shape italic
+BoW
+\shape default
+ se han cogido las 200 con mayor valor y las 200 con menor valor para asegurarno
+s de que sus ratios tienen un valor que se diferencia bastante de 0.5 y que
+ el número de palabras que ayudan a identidificar a los hombres es igual
+ que el número de palabras usado para las mujeres.
+ 
+\end_layout
+
+\begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Variables-usadas"
+
+\end_inset
+
+Variables usadas
+\end_layout
+
+\begin_layout Standard
+A la hora de generar los ficheros de datos para 
+\shape italic
+Weka
+\shape default
+ se han usado las siguientes variables:
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+ratio de comas
+\series default
+: número de comas en el texto entre el total de palabras del texto.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+ratio de puntos
+\series default
+: número de puntos en el texto entre el total de palabras del texto.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+ratio de acentos
+\series default
+: número de acentos en el texto entre el total de palabras diferentes del
+ texto.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+ratio de 
+\shape italic
+character flooding
+\series default
+\shape default
+: número de palabras con 
+\shape italic
+character flooding
+\shape default
+ entre el total de palabras del texto.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+ratio de palabras diferentes
+\series default
+: número de palabras diferentes entre el total de palabras del texto.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+ratio de emoticonos
+\series default
+: número de emoticonos entre el total de palabras del texto.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+ratio de énfasis
+\series default
+: número de veces que aparecen etiquetas de énfasis en 
+\shape italic
+HTML
+\shape default
+ entre el total de palabras del texto.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+ratio de risas
+\series default
+: número de risas entre el total de palabras del texto.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+ratio de números
+\series default
+: cantidad de veces que aparecen números en un texto entre el total de palabras
+ del texto.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\shape italic
+character flooding
+\shape default
+ de símbolos
+\series default
+: 
+\shape italic
+flag
+\shape default
+ que indica si se usa 
+\shape italic
+character flooding
+\shape default
+ de símbolos de exclamación e interrogación en el texto, sólo puede tener
+ el valor 0 (si se no usa) y 1 (si se usa).
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+uso de direcciones 
+\shape italic
+web
+\series default
+\shape default
+: 
+\shape italic
+flag
+\shape default
+ que indica si aparecen direcciones 
+\shape italic
+web
+\shape default
+ en el texto, su valor sólo puede ser 0 o 1.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+uso de direcciones de correo electrónico
+\series default
+: 
+\shape italic
+flag
+\shape default
+ que indica si aparecen direcciones de correo electrónico, su valor sólo
+ puede ser 0 o 1.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+uso de la arroba en palabras
+\series default
+: 
+\shape italic
+flag
+\shape default
+ que indica si aparecen palabras que contienen una arroba y no son correos
+ electrónicos.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\shape italic
+BoW
+\series default
+\shape default
+: 
+\shape italic
+Bag of Words
+\shape default
+ con 400 palabras obtenido con el proceso del apartado 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Bag-of-Words"
+
+\end_inset
+
+.
+ Para cada palabra se indica si aparece en el texto mediante un 1 y si no
+ aparece mediante un 0.
+\end_layout
+
+\begin_layout Section
+Resultados experimentales
+\end_layout
+
+\begin_layout Standard
+Para evaluar el modelo de clasificación se ha usado el 
+\shape italic
+software
+\shape default
+ 
+\shape italic
+Weka
+\shape default
+ con los algoritmos 
+\shape italic
+Naive Bayes
+\shape default
+ y 
+\shape italic
+DMNBText
+\shape default
+ usando validación cruzada con 10 particiones.
+\end_layout
+
+\begin_layout Standard
+En la siguiente tabla se pueden observar los resultados obtenidos para el
+ algoritmo 
+\shape italic
+Naive Bayes
+\shape default
+, en la primera fila se muestra el 
+\shape italic
+baseline
+\shape default
+ para comparar.
+ Al usar únicamente las 13 variables descritas en el apartado 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Variables-usadas"
+
+\end_inset
+
+ pero sin usar el 
+\shape italic
+BoW
+\shape default
+ obtenemos una gran mejora con respecto al 
+\shape italic
+baseline
+\shape default
+ para la tarea de edad y los resultados empeoran ligeramente para la tarea
+ de género.
+ Si además de estas variables añadimos el 
+\shape italic
+BoW
+\shape default
+ obtenido con las palabras que ayudan a distinguir mejor entre géneros conseguim
+os superar el 
+\shape italic
+baseline
+\shape default
+ para la tarea de género y mejoramos un poco el porcentaje de acierto para
+ la tarea de edad.
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace medskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="4" columns="3">
+<features tabularvalignment="middle">
+<column alignment="left" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Género
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Edad
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell multicolumn="1" alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+\shape italic
+Baseline
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+54.88%
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+27.13%
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Variables sin 
+\shape italic
+BoW
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+52.55%
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+44.36%
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Variables con 
+\shape italic
+BoW
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+58.87%
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+46.64%
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Resultados obtenidos con el algoritmo 
+\shape italic
+Naive Bayes
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace medskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+En cuanto a los resultados obtenidos con el algoritmo 
+\shape italic
+DMNBText
+\shape default
+ se puede ver que el porcentaje de acierto para la tarea de edad mejora
+ en gran medida y para la tarea de género los resultados mejoran ligeramente.
+ Además cabe destacar que en ambas tareas se supera el 
+\shape italic
+baseline
+\shape default
+ sin necesidad de usar el 
+\shape italic
+BoW
+\shape default
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace medskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="3" columns="3">
+<features tabularvalignment="middle">
+<column alignment="left" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Género
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Edad
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Variables sin 
+\shape italic
+BoW
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+58.01%
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+57.49%
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+Variables con 
+\shape italic
+BoW
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+61.65%
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family sans
+63.33%
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Resultados obtenidos con el algoritmo 
+\shape italic
+DMNBText
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Conclusiones y trabajo futuro
+\end_layout
+
+\begin_layout Standard
+Tras observar los resultados obtenidos se puede concluir que no siempre
+ es necesario el uso del 
+\shape italic
+BoW
+\shape default
+ para realizar una tarea de 
+\shape italic
+author profiling
+\shape default
+ ya que los resultados pueden ser muy parecidos o mejores que los obtenidos
+ usando esta técnica.
+ Sin embargo una elección más elaborada de las palabras que forman parte
+ del 
+\shape italic
+BoW
+\shape default
+ permite mejorar los resultados tanto para género como para edad.
+ En esta parte también es muy importante elegir adecuadamente el algoritmo
+ usado para el entrenamiento del modelo ya que también influye considerablemente
+ en los resultados obtenidos.
+\end_layout
+
+\begin_layout Standard
+En lo referente al tiempo de ejecución se ha hecho uso de la clase 
+\shape italic
+StringBuilder
+\shape default
+ de 
+\shape italic
+Java
+\shape default
+ a la hora de generar los ficheros para 
+\shape italic
+Weka
+\shape default
+, con esto se ha conseguido reducir el tiempo de ejecución casi 13 veces
+ si se compara con el tiempo usado para generar el mismo fichero realizando
+ la concatenación de 
+\shape italic
+Strings
+\shape default
+ en 
+\shape italic
+Java
+\shape default
+.
+ En cuanto al uso de expresiones regulares estas pueden penalizar la ejecución
+ del código pero este proceso se podría distribuir sobre los nodos de un
+ clúster ya que el proceso de los textos de cada autor es independiente.
+\end_layout
+
+\begin_layout Standard
+En cuanto a posibles mejoras se puede intentar mejorar la generación del
+ 
+\shape italic
+BoW
+\shape default
+ y extraer otras características mediante el uso de diccionarios, por ejemplo
+ se podría usar un diccionario con palabras en inglés para detectar el uso
+ de este idioma en los textos en castellano ya que es algo bastante frecuente.
+ Además el uso del diccionario puede ayudar a no detectar como como 
+\shape italic
+character flooding
+\shape default
+ algunas palabras en inglés ya que en este idioma es más frecuente la aparición
+ de dos consonantes seguidas.
+ Otra mejora sería la eliminación del 
+\shape italic
+BoW
+\shape default
+ de algunos 
+\shape italic
+tokens
+\shape default
+ como direcciones 
+\shape italic
+web
+\shape default
+ correos electrónicos o números ya que incluir esto en el 
+\shape italic
+BoW
+\shape default
+ puede causar un sobreajuste del algoritmo.
+ Por último se pueden usar otros tipos de 
+\shape italic
+BoWs
+\shape default
+ como por ejemplo de n-gramas de caracteres o palabras para ver si los resultado
+s mejoran.
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "PAN"
+
+\end_inset
+
+ [PAN] 
+\begin_inset CommandInset href
+LatexCommand href
+name "www.uni-weimar.de/medien/webis/events/pan-13/pan13-web/author-profiling.html"
+target "http://www.uni-weimar.de/medien/webis/events/pan-13/pan13-web/author-profiling.html"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "DATASET"
+
+\end_inset
+
+ [DATASET] 
+\begin_inset CommandInset href
+LatexCommand href
+name "www.uni-weimar.de/medien/webis/corpora/corpus-pan-labs-09-today/pan-13/pan13-data/pan13-author-profiling-test-corpus2-2013-04-29.zip"
+target "www.uni-weimar.de/medien/webis/corpora/corpus-pan-labs-09-today/pan-13/pan13-data/pan13-author-profiling-test-corpus2-2013-04-29.zip"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+label "Código fuente"
+key "Codigo"
+
+\end_inset
+
+ [CODIGO] 
+\begin_inset CommandInset href
+LatexCommand href
+target "www.github.com/lmontes/text_mining"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
